@@ -62,39 +62,26 @@ def parse_txt_file(txt_file=None, content=None):
     # 构建树形结构
     root_children = []
     # 栈结构：[(level, children_list)]
-    stack = [(0, root_children)]
+    stack = [(-1, root_children)]
 
     # 从第二行开始遍历
     for i in range(1, len(lines)):
         line = lines[i]
-        
+
         level = get_indent_level(line)
         text = line.strip()
 
         # 找到当前节点应该添加到哪个父节点
-        # 如果当前层级 <= 栈顶层级，说明要回退
+        # 回退到合适的父节点层级
         while len(stack) > 1 and stack[-1][0] >= level:
             stack.pop()
-
-        # 确保不会 pop 掉根容器（理论上 len(stack)>1 已经保证了，但多加保险）
-        if not stack:
-             stack.append((0, root_children))
 
         # 创建当前节点
         node = {"text": text, "children": []}
         stack[-1][1].append(node)
 
-        # 将当前节点加入栈，其层级为 level + 1 (逻辑上的子层级) 
-        # 或者直接用当前 level，逻辑是：栈顶元素是"Current Parent"
-        # 下一个元素的缩进如果是 level+1，就加到 node["children"]
-        # 我们这里的 stack 保存的是 (current_level_of_the_list, list_ref)
-        # 当遇到更深层级时，push new list
-        
-        # 修正逻辑：
-        # stack[-1] 是 "上一级节点的孩子列表" 以及 "该列表所属的层级"
-        # 其实我们应该 push (level, node["children"]) 
-        # 这样下一次循环，如果 next_level > level，它就会找 stack[-1]（即刚才 push 的）
-        stack.append((level + 1, node["children"]))  # +1 表示期待的下一级缩进至少是 level + 1
+        # 将当前节点的 children 列表加入栈，供下一层级使用
+        stack.append((level, node["children"]))
 
     # 直接返回树形结构，支持任意深度
     return title, root_children
