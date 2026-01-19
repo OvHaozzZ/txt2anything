@@ -137,3 +137,6 @@ static/mindmap_*.xmind
 
 # PDF files (sample data)
 *.pdf
+
+# txt files
+*.txt
