@@ -1,6 +1,6 @@
 # txt2xmind
 
-[![CI/CD Pipeline](https://github.com/YOUR_USERNAME/txt2xmind/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/YOUR_USERNAME/txt2xmind/actions/workflows/ci-cd.yml)
+[![CI/CD Pipeline](https://github.com/OvHaozzZ/txt2xmind/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/OvHaozzZ/txt2xmind/actions/workflows/ci-cd.yml)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 A powerful tool to convert indented text files into XMind mind maps. Supports both command-line interface and web application with optional AI-powered text structuring.
@@ -21,10 +21,10 @@ A powerful tool to convert indented text files into XMind mind maps. Supports bo
 
 ```bash
 # Pull the image from GitHub Container Registry
-docker pull ghcr.io/YOUR_USERNAME/txt2xmind:latest
+docker pull ghcr.io/OvHaozzZ/txt2xmind:latest
 
 # Run the container
-docker run -d -p 8000:8000 ghcr.io/YOUR_USERNAME/txt2xmind:latest
+docker run -d -p 8000:8000 ghcr.io/OvHaozzZ/txt2xmind:latest
 
 # Or use docker-compose
 docker-compose up -d
@@ -36,7 +36,7 @@ Visit `http://localhost:8000` in your browser.
 
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_USERNAME/txt2xmind.git
+git clone https://github.com/OvHaozzZ/txt2xmind.git
 cd txt2xmind
 
 # Install dependencies
@@ -219,4 +219,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Support
 
-If you encounter any issues or have questions, please [open an issue](https://github.com/YOUR_USERNAME/txt2xmind/issues) on GitHub.
+If you encounter any issues or have questions, please [open an issue](https://github.com/OvHaozzZ/txt2xmind/issues) on GitHub.
