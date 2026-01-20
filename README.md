@@ -3,220 +3,220 @@
 [![CI/CD Pipeline](https://github.com/OvHaozzZ/txt2xmind/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/OvHaozzZ/txt2xmind/actions/workflows/ci-cd.yml)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-A powerful tool to convert indented text files into XMind mind maps. Supports both command-line interface and web application with optional AI-powered text structuring.
+一个强大的工具，可将缩进文本文件转换为 XMind 思维导图。支持命令行界面和 Web 应用程序，并可选择使用 AI 驱动的文本结构化功能。
 
-## Features
+## 功能特性
 
-- **Text to XMind Conversion**: Convert indented text into professional XMind mind maps
-- **Multiple Layouts**: Support for right, map, tree, and org chart layouts
-- **Web Interface**: User-friendly Vue.js-based web application
-- **AI Integration**: Optional OpenAI API integration for automatic text structuring
-- **Unlimited Hierarchy**: Support for deeply nested structures
-- **Docker Support**: Easy deployment with Docker and docker-compose
-- **CI/CD Ready**: Automated testing and deployment with GitHub Actions
+- **文本转 XMind**：将缩进文本转换为专业的 XMind 思维导图
+- **多种布局**：支持右侧、思维导图、树形图和组织结构图布局
+- **Web 界面**：基于 Vue.js 的用户友好型 Web 应用程序
+- **AI 集成**：可选的 OpenAI API 集成，用于自动文本结构化
+- **无限层级**：支持深度嵌套结构
+- **Docker 支持**：使用 Docker 和 docker-compose 轻松部署
+- **CI/CD 就绪**：通过 GitHub Actions 实现自动化测试和部署
 
-## Quick Start
+## 快速开始
 
-### Using Docker (Recommended)
+### 使用 Docker（推荐）
 
 ```bash
-# Pull the image from GitHub Container Registry
+# 从 GitHub Container Registry 拉取镜像
 docker pull ghcr.io/OvHaozzZ/txt2xmind:latest
 
-# Run the container
+# 运行容器
 docker run -d -p 8000:8000 ghcr.io/OvHaozzZ/txt2xmind:latest
 
-# Or use docker-compose
+# 或使用 docker-compose
 docker-compose up -d
 ```
 
-Visit `http://localhost:8000` in your browser.
+在浏览器中访问 `http://localhost:8000`。
 
-### Local Installation
+### 本地安装
 
 ```bash
-# Clone the repository
+# 克隆仓库
 git clone https://github.com/OvHaozzZ/txt2xmind.git
 cd txt2xmind
 
-# Install dependencies
+# 安装依赖
 pip install -r requirements.txt
 
-# Run the web application
+# 运行 Web 应用
 python web_app.py
 ```
 
-Visit `http://localhost:8000` in your browser.
+在浏览器中访问 `http://localhost:8000`。
 
-### Command Line Usage
+### 命令行使用
 
 ```bash
-# Basic usage
+# 基本用法
 python generate_xmind.py input.txt
 
-# With custom layout
+# 使用自定义布局
 python generate_xmind.py input.txt --layout map
 ```
 
-## Input Format
+## 输入格式
 
-Create a text file with indented structure (2 spaces or 1 tab per level):
+创建一个具有缩进结构的文本文件（每级 2 个空格或 1 个制表符）：
 
 ```
-Project Plan
-  Phase 1: Planning
-    Define Requirements
-    Create Timeline
-  Phase 2: Development
-    Backend Development
-    Frontend Development
-  Phase 3: Testing
-    Unit Tests
-    Integration Tests
+项目计划
+  阶段 1：规划
+    定义需求
+    创建时间表
+  阶段 2：开发
+    后端开发
+    前端开发
+  阶段 3：测试
+    单元测试
+    集成测试
 ```
 
-## API Documentation
+## API 文档
 
 ### POST /api/generate
 
-Generate XMind file from text.
+从文本生成 XMind 文件。
 
-**Request Body:**
+**请求体：**
 ```json
 {
-  "text": "Root\n  Child 1\n  Child 2",
+  "text": "根节点\n  子节点 1\n  子节点 2",
   "layout": "right",
-  "api_key": "optional-openai-key",
-  "base_url": "optional-api-base-url",
+  "api_key": "可选的-openai-密钥",
+  "base_url": "可选的-api-基础-url",
   "model": "gpt-3.5-turbo"
 }
 ```
 
-**Response:**
+**响应：**
 ```json
 {
   "download_url": "/static/mindmap_20240119120000.xmind",
-  "structured_text": "Root\n  Child 1\n  Child 2"
+  "structured_text": "根节点\n  子节点 1\n  子节点 2"
 }
 ```
 
-**Layout Options:**
-- `right`: Right-aligned logic diagram (default)
-- `map`: Center radial mind map
-- `tree`: Tree diagram
-- `org`: Organization chart (downward)
+**布局选项：**
+- `right`：右对齐逻辑图（默认）
+- `map`：中心辐射思维导图
+- `tree`：树形图
+- `org`：组织结构图（向下）
 
-## Development
+## 开发
 
-### Setup Development Environment
+### 设置开发环境
 
 ```bash
-# Install development dependencies
+# 安装开发依赖
 pip install -r requirements-dev.txt
 
-# Run tests
+# 运行测试
 pytest tests/ -v
 
-# Run with coverage
+# 运行覆盖率测试
 pytest tests/ --cov=. --cov-report=html
 
-# Code quality checks
+# 代码质量检查
 flake8 .
 pylint generate_xmind.py web_app.py
 ```
 
-### Project Structure
+### 项目结构
 
 ```
 txt2xmind/
-├── generate_xmind.py      # Core XMind generation logic
-├── web_app.py             # FastAPI web application
+├── generate_xmind.py      # 核心 XMind 生成逻辑
+├── web_app.py             # FastAPI Web 应用
 ├── static/
-│   └── index.html         # Vue.js frontend
-├── tests/                 # Test suite
+│   └── index.html         # Vue.js 前端
+├── tests/                 # 测试套件
 │   ├── test_generate_xmind.py
 │   └── test_web_app.py
-├── requirements.txt       # Production dependencies
-├── requirements-dev.txt   # Development dependencies
-├── Dockerfile            # Docker configuration
-├── docker-compose.yml    # Docker Compose configuration
+├── requirements.txt       # 生产依赖
+├── requirements-dev.txt   # 开发依赖
+├── Dockerfile            # Docker 配置
+├── docker-compose.yml    # Docker Compose 配置
 └── .github/
-    └── workflows/        # GitHub Actions workflows
+    └── workflows/        # GitHub Actions 工作流
 ```
 
 ## CI/CD
 
-This project uses GitHub Actions for continuous integration and deployment:
+本项目使用 GitHub Actions 进行持续集成和部署：
 
-- **CI/CD Pipeline**: Runs tests and builds Docker images on push to main
-- **Manual Deployment**: Allows manual deployment to different environments
+- **CI/CD 流水线**：在推送到 main 分支时运行测试并构建 Docker 镜像
+- **手动部署**：允许手动部署到不同环境
 
-### Setting Up CI/CD
+### 设置 CI/CD
 
-1. Create a repository on GitHub
-2. Push your code to the repository
-3. GitHub Actions will automatically run tests and build Docker images
-4. Docker images are published to GitHub Container Registry (ghcr.io)
+1. 在 GitHub 上创建仓库
+2. 将代码推送到仓库
+3. GitHub Actions 将自动运行测试并构建 Docker 镜像
+4. Docker 镜像发布到 GitHub Container Registry (ghcr.io)
 
-### Repository Settings
+### 仓库设置
 
-Ensure the following settings in your GitHub repository:
+确保在 GitHub 仓库中进行以下设置：
 
-1. Go to Settings → Actions → General
-2. Set "Workflow permissions" to "Read and write permissions"
-3. Enable "Allow GitHub Actions to create and approve pull requests"
+1. 转到 Settings → Actions → General
+2. 将"Workflow permissions"设置为"Read and write permissions"
+3. 启用"Allow GitHub Actions to create and approve pull requests"
 
-## Docker Deployment
+## Docker 部署
 
-### Build Locally
+### 本地构建
 
 ```bash
-# Build the image
+# 构建镜像
 docker build -t txt2xmind:local .
 
-# Run the container
+# 运行容器
 docker run -d -p 8000:8000 txt2xmind:local
 ```
 
-### Using Docker Compose
+### 使用 Docker Compose
 
 ```bash
-# Start services
+# 启动服务
 docker-compose up -d
 
-# View logs
+# 查看日志
 docker-compose logs -f
 
-# Stop services
+# 停止服务
 docker-compose down
 ```
 
-## Environment Variables
+## 环境变量
 
-- `PYTHONUNBUFFERED`: Set to 1 for unbuffered Python output
-- `OPENAI_API_KEY`: (Optional) Default OpenAI API key for AI features
+- `PYTHONUNBUFFERED`：设置为 1 以获得无缓冲的 Python 输出
+- `OPENAI_API_KEY`：（可选）AI 功能的默认 OpenAI API 密钥
 
-## Contributing
+## 贡献
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+欢迎贡献！请随时提交 Pull Request。
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+1. Fork 本仓库
+2. 创建您的功能分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交您的更改 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
+5. 打开一个 Pull Request
 
-## License
+## 许可证
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+本项目采用 MIT 许可证 - 详见 LICENSE 文件。
 
-## Acknowledgments
+## 致谢
 
-- Built with [FastAPI](https://fastapi.tiangolo.com/)
-- Frontend powered by [Vue.js](https://vuejs.org/)
-- Styled with [Tailwind CSS](https://tailwindcss.com/)
-- XMind format specification
+- 使用 [FastAPI](https://fastapi.tiangolo.com/) 构建
+- 前端由 [Vue.js](https://vuejs.org/) 驱动
+- 使用 [Tailwind CSS](https://tailwindcss.com/) 样式化
+- XMind 格式规范
 
-## Support
+## 支持
 
-If you encounter any issues or have questions, please [open an issue](https://github.com/OvHaozzZ/txt2xmind/issues) on GitHub.
+如果您遇到任何问题或有疑问，请在 GitHub 上[提交 issue](https://github.com/OvHaozzZ/txt2xmind/issues)。
