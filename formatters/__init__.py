@@ -6,9 +6,11 @@
 from .base import BaseFormatter
 from .xmind import XMindFormatter
 from .markdown import MarkdownFormatter
+from .ppt import PPTFormatter
 
 __all__ = [
     'BaseFormatter',
     'XMindFormatter',
     'MarkdownFormatter',
+    'PPTFormatter',
 ]

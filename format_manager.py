@@ -7,6 +7,7 @@ from typing import Dict, List, Optional
 from formatters.base import BaseFormatter
 from formatters.xmind import XMindFormatter
 from formatters.markdown import MarkdownFormatter
+from formatters.ppt import PPTFormatter
 
 
 class FormatManager:
@@ -20,6 +21,7 @@ class FormatManager:
         """注册默认的格式化器"""
         self.register(XMindFormatter())
         self.register(MarkdownFormatter())
+        self.register(PPTFormatter())
 
     def register(self, formatter: BaseFormatter):
         """
