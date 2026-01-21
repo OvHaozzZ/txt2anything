@@ -3,15 +3,17 @@
 [![CI/CD Pipeline](https://github.com/OvHaozzZ/txt2xmind/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/OvHaozzZ/txt2xmind/actions/workflows/ci-cd.yml)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-一个强大的工具，可将缩进文本文件转换为 XMind 思维导图。支持命令行界面和 Web 应用程序，并可选择使用 AI 驱动的文本结构化功能。
+一个强大的工具，可将缩进文本文件转换为多种格式的思维导图和文档。支持命令行界面和 Web 应用程序，并可选择使用 AI 驱动的文本结构化功能。
 
 ## 功能特性
 
-- **文本转 XMind**：将缩进文本转换为专业的 XMind 思维导图
-- **多种布局**：支持右侧、思维导图、树形图和组织结构图布局
+- **多格式输出**：支持 XMind、Markdown 等多种输出格式
+- **文本转思维导图**：将缩进文本转换为专业的思维导图和结构化文档
+- **多种布局**：XMind 支持右侧、思维导图、树形图和组织结构图布局
 - **Web 界面**：基于 Vue.js 的用户友好型 Web 应用程序
 - **AI 集成**：可选的 OpenAI API 集成，用于自动文本结构化
 - **无限层级**：支持深度嵌套结构
+- **可扩展架构**：基于格式化器模式，易于添加新的输出格式
 - **Docker 支持**：使用 Docker 和 docker-compose 轻松部署
 - **CI/CD 就绪**：通过 GitHub Actions 实现自动化测试和部署
 
@@ -51,11 +53,53 @@ python web_app.py
 ### 命令行使用
 
 ```bash
-# 基本用法
+# 基本用法（默认生成 XMind 格式）
 python generate_xmind.py input.txt
 
-# 使用自定义布局
-python generate_xmind.py input.txt --layout map
+# 生成 Markdown 格式
+python generate_xmind.py input.txt --format markdown
+
+# 生成 XMind 并指定布局
+python generate_xmind.py input.txt --format xmind --layout map
+
+# 列出所有支持的格式
+python generate_xmind.py --list-formats
+
+# 查看帮助
+python generate_xmind.py --help
+```
+
+## 支持的输出格式
+
+| 格式 | 扩展名 | 描述 | 适用场景 |
+|------|--------|------|----------|
+| **XMind** | `.xmind` | 专业思维导图格式 | 需要可视化思维导图、演示、头脑风暴 |
+| **Markdown** | `.md` | 层级列表格式 | 文档编写、GitHub、笔记应用 |
+
+### 如何添加新格式
+
+项目采用可扩展的格式化器架构，添加新格式非常简单：
+
+1. 在 `formatters/` 目录创建新的格式化器类
+2. 继承 `BaseFormatter` 抽象基类
+3. 实现必需的方法：`format_name`, `file_extension`, `description`, `format()`, `save()`
+4. 在 `format_manager.py` 中注册新格式化器
+
+示例代码结构：
+
+```python
+from formatters.base import BaseFormatter
+
+class MyFormatter(BaseFormatter):
+    @property
+    def format_name(self) -> str:
+        return "myformat"
+
+    @property
+    def file_extension(self) -> str:
+        return ".myext"
+
+    # ... 实现其他方法
 ```
 
 ## 输入格式
@@ -77,14 +121,37 @@ python generate_xmind.py input.txt --layout map
 
 ## API 文档
 
+### GET /api/formats
+
+列出所有支持的输出格式。
+
+**响应：**
+```json
+{
+  "formats": [
+    {
+      "name": "xmind",
+      "extension": ".xmind",
+      "description": "XMind 思维导图格式"
+    },
+    {
+      "name": "markdown",
+      "extension": ".md",
+      "description": "Markdown 层级列表格式"
+    }
+  ]
+}
+```
+
 ### POST /api/generate
 
-从文本生成 XMind 文件。
+从文本生成思维导图文件（支持多种格式）。
 
 **请求体：**
 ```json
 {
   "text": "根节点\n  子节点 1\n  子节点 2",
+  "format": "xmind",
   "layout": "right",
   "api_key": "可选的-openai-密钥",
   "base_url": "可选的-api-基础-url",
@@ -92,15 +159,26 @@ python generate_xmind.py input.txt --layout map
 }
 ```
 
+**参数说明：**
+
+- `text`：要转换的文本内容（必需）
+- `format`：输出格式，可选 `xmind`、`markdown` 等（默认：`xmind`）
+- `layout`：XMind 布局类型（仅当 format 为 xmind 时有效，默认：`right`）
+- `api_key`：OpenAI API 密钥（可选，用于 AI 文本结构化）
+- `base_url`：API 基础 URL（可选）
+- `model`：AI 模型名称（默认：`gpt-3.5-turbo`）
+
 **响应：**
 ```json
 {
   "download_url": "/static/mindmap_20240119120000.xmind",
-  "structured_text": "根节点\n  子节点 1\n  子节点 2"
+  "structured_text": "根节点\n  子节点 1\n  子节点 2",
+  "format": "xmind"
 }
 ```
 
-**布局选项：**
+**XMind 布局选项：**
+
 - `right`：右对齐逻辑图（默认）
 - `map`：中心辐射思维导图
 - `tree`：树形图
@@ -129,10 +207,19 @@ pylint generate_xmind.py web_app.py
 
 ```
 txt2xmind/
-├── generate_xmind.py      # 核心 XMind 生成逻辑
+├── generate_xmind.py      # 命令行入口（支持多格式）
 ├── web_app.py             # FastAPI Web 应用
+├── format_manager.py      # 格式管理器
+├── core/                  # 核心模块
+│   ├── __init__.py
+│   └── parser.py          # 文本解析逻辑
+├── formatters/            # 格式化器模块
+│   ├── __init__.py
+│   ├── base.py            # 格式化器抽象基类
+│   ├── xmind.py           # XMind 格式化器
+│   └── markdown.py        # Markdown 格式化器
 ├── static/
-│   └── index.html         # Vue.js 前端
+│   └── index.html         # Vue.js 前端界面
 ├── tests/                 # 测试套件
 │   ├── test_generate_xmind.py
 │   └── test_web_app.py

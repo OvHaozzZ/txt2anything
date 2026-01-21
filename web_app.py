@@ -11,7 +11,8 @@ import uvicorn
 from datetime import datetime
 
 # 导入现有逻辑
-from generate_xmind import parse_txt_file, save_xmind
+from core.parser import parse_text
+from format_manager import get_format_manager
 
 # 配置日志
 logging.basicConfig(level=logging.INFO)
@@ -35,6 +36,7 @@ class GenerateRequest(BaseModel):
     base_url: Optional[str] = None
     model: str = "gpt-3.5-turbo"
     layout: str = "right"
+    format: str = "xmind"  # 新增：输出格式
 
 def call_openai_to_structure(text: str, api_key: str, base_url: Optional[str], model: str) -> str:
     """
@@ -99,12 +101,23 @@ Python Overview
 @app.post("/api/generate")
 async def generate_xmind_endpoint(request: GenerateRequest):
     """
-    从文本生成 XMind 文件。
+    从文本生成思维导图文件（支持多种格式）。
     如果提供了 'api_key'，则先使用 AI 处理文本。
     否则，将文本视为已结构化（已缩进）。
     """
     content = request.text
-    
+
+    # 获取格式管理器
+    manager = get_format_manager()
+
+    # 验证格式
+    if not manager.is_format_supported(request.format):
+        supported = [fmt['name'] for fmt in manager.list_formats()]
+        raise HTTPException(
+            status_code=400,
+            detail=f"不支持的格式: {request.format}。支持的格式: {', '.join(supported)}"
+        )
+
     # 1. AI 处理（可选）
     # 如果用户提供了 API key，我们假设他们想要 AI 结构化。
     # 如果没有，我们假设文本已经是缩进格式的。
@@ -112,27 +125,42 @@ async def generate_xmind_endpoint(request: GenerateRequest):
         logger.info("正在使用 AI 结构化文本...")
         content = call_openai_to_structure(content, request.api_key, request.base_url, request.model)
         logger.info("AI 结构化完成。")
-    
-    # 2. 生成 XMind
+
+    # 2. 生成文件
     try:
         # 创建唯一文件名
         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-        filename = f"mindmap_{timestamp}.xmind"
+        formatter = manager.get_formatter(request.format)
+        filename = f"mindmap_{timestamp}{formatter.file_extension}"
         filepath = os.path.join("static", filename)
-        
+
         # 解析内容
-        title, structure = parse_txt_file(content=content)
-        
-        # 保存 XMind
-        save_xmind(filepath, title, structure, layout=request.layout)
-        
-        return {"download_url": f"/static/{filename}", "structured_text": content}
-        
+        title, tree_nodes = parse_text(content=content)
+
+        # 导出文件
+        options = {}
+        if request.format == "xmind":
+            options["layout"] = request.layout
+
+        manager.export(request.format, title, tree_nodes, filepath, **options)
+
+        return {
+            "download_url": f"/static/{filename}",
+            "structured_text": content,
+            "format": request.format
+        }
+
     except ValueError as ve:
         raise HTTPException(status_code=400, detail=str(ve))
     except Exception as e:
         logger.error(f"Generation Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/formats")
+async def list_formats():
+    """列出所有支持的输出格式"""
+    manager = get_format_manager()
+    return {"formats": manager.list_formats()}
 
 @app.get("/")
 async def read_index():

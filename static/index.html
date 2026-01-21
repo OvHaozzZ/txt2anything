@@ -109,7 +109,14 @@
                 </div>
 
                 <div class="flex items-center gap-3">
-                    <select v-model="layout"
+                    <select v-model="outputFormat"
+                        class="text-sm border border-slate-200 rounded-lg px-3 py-2.5 bg-white text-slate-600 focus:border-blue-400 outline-none cursor-pointer hover:bg-slate-50">
+                        <option v-for="fmt in formats" :key="fmt.name" :value="fmt.name">
+                            {{ fmt.description }} ({{ fmt.extension }})
+                        </option>
+                    </select>
+
+                    <select v-model="layout" v-if="outputFormat === 'xmind'"
                         class="text-sm border border-slate-200 rounded-lg px-3 py-2.5 bg-white text-slate-600 focus:border-blue-400 outline-none cursor-pointer hover:bg-slate-50">
                         <option value="right">向右逻辑图 (Right)</option>
                         <option value="map">中心发散图 (Map)</option>
@@ -181,7 +188,7 @@
 
                     <div class="space-y-1">
                         <h3 class="text-xl font-bold text-slate-800">生成成功!</h3>
-                        <p class="text-slate-500">您的思维导图已准备好</p>
+                        <p class="text-slate-500">您的{{ getFormatDescription() }}已准备好</p>
                     </div>
 
                     <a :href="downloadUrl"
@@ -192,7 +199,7 @@
                             <polyline points="7 10 12 15 17 10"></polyline>
                             <line x1="12" y1="15" x2="12" y2="3"></line>
                         </svg>
-                        <span>立即下载 .xmind</span>
+                        <span>立即下载 {{ getFormatExtension() }}</span>
                     </a>
 
                     <button @click="reset" class="text-sm text-slate-400 hover:text-slate-600 transition">
@@ -215,10 +222,41 @@
                 const apiKey = ref(localStorage.getItem('ai_xmind_key') || '')
                 const baseUrl = ref(localStorage.getItem('ai_xmind_url') || '')
                 const layout = ref('right')
+                const outputFormat = ref('xmind')
+                const formats = ref([])
                 const showSettings = ref(true)
                 const isLoading = ref(false)
                 const downloadUrl = ref('')
                 const statusMessage = ref('')
+
+                // 加载支持的格式列表
+                const loadFormats = async () => {
+                    try {
+                        const response = await fetch('/api/formats')
+                        const data = await response.json()
+                        formats.value = data.formats
+                    } catch (e) {
+                        console.error('Failed to load formats:', e)
+                        // 默认格式
+                        formats.value = [
+                            { name: 'xmind', extension: '.xmind', description: 'XMind 思维导图格式' },
+                            { name: 'markdown', extension: '.md', description: 'Markdown 层级列表格式' }
+                        ]
+                    }
+                }
+
+                // 页面加载时获取格式列表
+                loadFormats()
+
+                const getFormatDescription = () => {
+                    const fmt = formats.value.find(f => f.name === outputFormat.value)
+                    return fmt ? fmt.description : '文件'
+                }
+
+                const getFormatExtension = () => {
+                    const fmt = formats.value.find(f => f.name === outputFormat.value)
+                    return fmt ? fmt.extension : ''
+                }
 
                 const generate = async () => {
                     if (!rawText.value) return
@@ -248,7 +286,8 @@
                                 text: rawText.value,
                                 api_key: apiKey.value,
                                 base_url: baseUrl.value,
-                                layout: layout.value
+                                layout: layout.value,
+                                format: outputFormat.value
                             })
                         })
 
@@ -283,13 +322,17 @@
                     apiKey,
                     baseUrl,
                     layout,
+                    outputFormat,
+                    formats,
                     showSettings,
                     isLoading,
                     downloadUrl,
                     statusMessage,
                     generate,
                     copyResult,
-                    reset
+                    reset,
+                    getFormatDescription,
+                    getFormatExtension
                 }
             }
         }).mount('#app')
