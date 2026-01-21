@@ -5,11 +5,12 @@ import os
 import json
 import zipfile
 import pytest
-from generate_xmind import parse_txt_file, create_xmind_content, save_xmind
+from core.parser import parse_text
+from formatters.xmind import XMindFormatter
 
 
-class TestParseTxtFile:
-    """Test parse_txt_file function"""
+class TestParseText:
+    """Test parse_text function"""
 
     def test_parse_simple_structure(self):
         """Test parsing a simple two-level structure"""
@@ -17,7 +18,7 @@ class TestParseTxtFile:
   Child 1
   Child 2"""
 
-        title, structure = parse_txt_file(content=content)
+        title, structure = parse_text(content=content)
 
         assert title == "Root Node"
         assert len(structure) == 2
@@ -33,7 +34,7 @@ class TestParseTxtFile:
   Level 1 - B
     Level 2 - B1"""
 
-        title, structure = parse_txt_file(content=content)
+        title, structure = parse_text(content=content)
 
         assert title == "Main Topic"
         assert len(structure) == 2
@@ -51,7 +52,7 @@ class TestParseTxtFile:
       L3
         L4"""
 
-        title, structure = parse_txt_file(content=content)
+        title, structure = parse_text(content=content)
 
         assert title == "Root"
         assert structure[0]["text"] == "L1"
@@ -62,13 +63,13 @@ class TestParseTxtFile:
     def test_parse_empty_content(self):
         """Test parsing empty content"""
         with pytest.raises(ValueError):
-            parse_txt_file(content="")
+            parse_text(content="")
 
     def test_parse_with_tabs(self):
         """Test parsing with tab indentation"""
         content = "Root\n\tChild 1\n\tChild 2"
 
-        title, structure = parse_txt_file(content=content)
+        title, structure = parse_text(content=content)
 
         assert title == "Root"
         assert len(structure) == 2
@@ -78,31 +79,34 @@ class TestParseTxtFile:
         """Test parsing with mixed spaces and tabs"""
         content = "Root\n  Child 1\n\tChild 2"
 
-        title, structure = parse_txt_file(content=content)
+        title, structure = parse_text(content=content)
 
         assert title == "Root"
         assert len(structure) == 2
 
 
-class TestCreateXmindContent:
-    """Test create_xmind_content function"""
+class TestXMindFormatter:
+    """Test XMindFormatter class"""
 
-    def test_create_simple_content(self):
-        """Test creating simple XMind content"""
+    def test_format_simple_content(self):
+        """Test formatting simple XMind content"""
+        formatter = XMindFormatter()
         tree_nodes = [
             {"text": "Node 1", "children": []},
             {"text": "Node 2", "children": []}
         ]
 
-        content = create_xmind_content("Test Title", tree_nodes)
+        content = formatter.format("Test Title", tree_nodes)
 
-        assert len(content) == 1
-        assert content[0]["title"] == "画布 1"
-        assert content[0]["rootTopic"]["title"] == "Test Title"
-        assert len(content[0]["rootTopic"]["children"]["attached"]) == 2
+        assert "content" in content
+        assert len(content["content"]) == 1
+        assert content["content"][0]["title"] == "画布 1"
+        assert content["content"][0]["rootTopic"]["title"] == "Test Title"
+        assert len(content["content"][0]["rootTopic"]["children"]["attached"]) == 2
 
-    def test_create_nested_content(self):
-        """Test creating nested XMind content"""
+    def test_format_nested_content(self):
+        """Test formatting nested XMind content"""
+        formatter = XMindFormatter()
         tree_nodes = [
             {
                 "text": "Parent",
@@ -112,14 +116,15 @@ class TestCreateXmindContent:
             }
         ]
 
-        content = create_xmind_content("Test", tree_nodes)
+        content = formatter.format("Test", tree_nodes)
 
-        root_topic = content[0]["rootTopic"]
+        root_topic = content["content"][0]["rootTopic"]
         assert root_topic["children"]["attached"][0]["title"] == "Parent"
         assert root_topic["children"]["attached"][0]["children"]["attached"][0]["title"] == "Child"
 
     def test_different_layouts(self):
         """Test different layout options"""
+        formatter = XMindFormatter()
         tree_nodes = [{"text": "Node", "children": []}]
 
         layouts = {
@@ -130,15 +135,12 @@ class TestCreateXmindContent:
         }
 
         for layout_key, expected_class in layouts.items():
-            content = create_xmind_content("Test", tree_nodes, layout=layout_key)
-            assert content[0]["rootTopic"]["structureClass"] == expected_class
-
-
-class TestSaveXmind:
-    """Test save_xmind function"""
+            content = formatter.format("Test", tree_nodes, layout=layout_key)
+            assert content["content"][0]["rootTopic"]["structureClass"] == expected_class
 
     def test_save_xmind_file(self, tmp_path):
         """Test saving XMind file"""
+        formatter = XMindFormatter()
         filename = tmp_path / "test.xmind"
         title = "Test Mind Map"
         structure = [
@@ -146,7 +148,7 @@ class TestSaveXmind:
             {"text": "Node 2", "children": []}
         ]
 
-        save_xmind(str(filename), title, structure)
+        formatter.export(title, structure, str(filename))
 
         # Verify file exists
         assert filename.exists()
@@ -168,9 +170,10 @@ class TestSaveXmind:
 
     def test_save_with_different_layouts(self, tmp_path):
         """Test saving with different layouts"""
+        formatter = XMindFormatter()
         structure = [{"text": "Node", "children": []}]
 
         for layout in ["right", "map", "tree", "org"]:
             filename = tmp_path / f"test_{layout}.xmind"
-            save_xmind(str(filename), "Test", structure, layout=layout)
+            formatter.export("Test", structure, str(filename), layout=layout)
             assert filename.exists()
