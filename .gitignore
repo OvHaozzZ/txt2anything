@@ -140,3 +140,7 @@ static/mindmap_*.xmind
 
 # txt files
 *.txt
+
+# test 
+test_input.*
+test_output.*

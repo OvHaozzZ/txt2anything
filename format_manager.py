@@ -7,7 +7,16 @@ from typing import Dict, List, Optional
 from formatters.base import BaseFormatter
 from formatters.xmind import XMindFormatter
 from formatters.markdown import MarkdownFormatter
-from formatters.ppt import PPTFormatter
+
+# 尝试导入 ppt-master 格式化器，如果失败则使用简单版本
+try:
+    from formatters.ppt_master import PPTMasterFormatter
+    PPT_FORMATTER = PPTMasterFormatter
+except Exception as e:
+    print(f"警告: 无法加载 ppt-master 格式化器: {e}")
+    print("      将使用简单的 PPT 格式化器")
+    from formatters.ppt import PPTFormatter
+    PPT_FORMATTER = PPTFormatter
 
 
 class FormatManager:
@@ -21,7 +30,10 @@ class FormatManager:
         """注册默认的格式化器"""
         self.register(XMindFormatter())
         self.register(MarkdownFormatter())
-        self.register(PPTFormatter())
+        try:
+            self.register(PPT_FORMATTER())
+        except Exception as e:
+            print(f"警告: PPT 格式化器注册失败: {e}")
 
     def register(self, formatter: BaseFormatter):
         """
