@@ -11,7 +11,7 @@
 - **文本转思维导图**：将缩进文本转换为专业的思维导图和结构化文档
 - **多种布局**：XMind 支持右侧、思维导图、树形图和组织结构图布局
 - **Web 界面**：基于 Vue.js 的用户友好型 Web 应用程序
-- **AI 集成**：可选的 OpenAI API 集成，用于自动文本结构化
+- **AI 集成**：集成 Google Gemini API，用于自动文本结构化
 - **无限层级**：支持深度嵌套结构
 - **可扩展架构**：基于格式化器模式，易于添加新的输出格式
 - **Docker 支持**：使用 Docker 和 docker-compose 轻松部署
@@ -153,9 +153,9 @@ class MyFormatter(BaseFormatter):
   "text": "根节点\n  子节点 1\n  子节点 2",
   "format": "xmind",
   "layout": "right",
-  "api_key": "可选的-openai-密钥",
-  "base_url": "可选的-api-基础-url",
-  "model": "gpt-3.5-turbo"
+  "api_key": "可选的-gemini-api-key",
+  "base_url": "可选-暂不支持",
+  "model": "gemini-1.5-flash"
 }
 ```
 
@@ -164,9 +164,9 @@ class MyFormatter(BaseFormatter):
 - `text`：要转换的文本内容（必需）
 - `format`：输出格式，可选 `xmind`、`markdown` 等（默认：`xmind`）
 - `layout`：XMind 布局类型（仅当 format 为 xmind 时有效，默认：`right`）
-- `api_key`：OpenAI API 密钥（可选，用于 AI 文本结构化）
-- `base_url`：API 基础 URL（可选）
-- `model`：AI 模型名称（默认：`gpt-3.5-turbo`）
+- `api_key`：Google Gemini API Key（可选，用于 AI 文本结构化）
+- `base_url`：API 基础 URL（可选，Gemini API 通常直接连接 Google，设置此项可能仅产生警告）
+- `model`：AI 模型名称（默认会自动转换为 `gemini-1.5-flash` 或用户指定）
 
 **响应：**
 ```json

@@ -141,6 +141,9 @@ static/mindmap_*.xmind
 # txt files
 *.txt
 
+# pptx files
+*.pptx
+
 # test 
 test_input.*
 test_output.*

@@ -34,32 +34,46 @@ class GenerateRequest(BaseModel):
     text: str
     api_key: Optional[str] = None
     base_url: Optional[str] = None
-    model: str = "gpt-3.5-turbo"
+    model: str = "gemini-3-flash-preview"
     layout: str = "right"
     format: str = "xmind"  # 新增：输出格式
 
-def call_openai_to_structure(text: str, api_key: str, base_url: Optional[str], model: str) -> str:
+def call_gemini_to_structure(text: str, api_key: str, base_url: Optional[str], model: str) -> str:
     """
-    调用 OpenAI (或兼容的) API 将原始文本结构化为缩进列表。
+    调用 Google Gemini API 将原始文本结构化为缩进列表。
     """
     try:
-        from openai import OpenAI
+        import google.generativeai as genai
     except ImportError:
-        raise HTTPException(status_code=500, detail="未安装 OpenAI 库。请运行 `pip install openai`。")
+        raise HTTPException(status_code=500, detail="未安装 Google Generative AI 库。请运行 `pip install google-generativeai`。")
 
     if not api_key:
          raise HTTPException(status_code=400, detail="需要 API Key 才能进行 AI 结构化处理。")
 
-    client_kwargs = {"api_key": api_key}
-    if base_url:
-        client_kwargs["base_url"] = base_url
-    
-    # 添加 User-Agent 以避免被拦截
-    client_kwargs["default_headers"] = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-    }
+    # 配置 Gemini
+    genai.configure(api_key=api_key)
 
-    client = OpenAI(**client_kwargs)
+    # 如果有 base_url，目前 google-generativeai 库原生支持较弱，通常直接连 Google
+    # 但如果用户确实需要自定义端点（例如反代），可能需要更底层的配置或改回 requests 调用
+    # 这里我们暂时假设标准用法，忽略 base_url 或仅做日志提示
+    if base_url:
+        logger.warning("Gemini API 目前主要支持官方端点，Base URL 设置可能无效或需特殊处理。")
+
+    # 使用 Gemini Pro 模型
+    # 如果用户传的是 gpt-3.5，我们需要强制转为 gemini 模型
+    # 否则直接使用用户传递的模型
+    if not model or "gpt" in model:
+        target_model = "gemini-3-flash-preview"
+    else:
+        target_model = model
+    
+    generation_config = {
+        "temperature": 0.7,
+        "top_p": 0.95,
+        "top_k": 64,
+        "max_output_tokens": 8192,
+        "response_mime_type": "text/plain",
+    }
 
     system_prompt = """
 You are a helpful assistant that summarizes and structures text into a hierarchical indented list.
@@ -84,19 +98,40 @@ Python Overview
       Numpy
 """
 
+    # 安全设置：尽可能放宽，防止误拦截
+    # 注意：使用的 SDK 版本可能需要使用特定的枚举或字符串
+    # 这里直接使用字符串键值对，兼容性更好
+    safety_settings = [
+        {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
+        {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
+        {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
+        {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
+    ]
+
     try:
-        response = client.chat.completions.create(
-            model=model,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": text}
-            ],
-            temperature=0.7
+        model_instance = genai.GenerativeModel(
+            model_name=target_model,
+            system_instruction=system_prompt
         )
-        return response.choices[0].message.content
+
+        # 使用 generate_content 而不是 chat，适用于单次生成
+        response = model_instance.generate_content(
+            text,
+            generation_config=generation_config,
+            safety_settings=safety_settings
+        )
+        
+        # 简单检查 response.text 是否可用
+        # 如果被拦截，访问 .text 会抛出 ValueError
+        return response.text
+        
     except Exception as e:
-        logger.error(f"OpenAI API Error: {e}")
-        raise HTTPException(status_code=502, detail=f"AI 服务错误: {str(e)}")
+        logger.error(f"Gemini API Error: {e}")
+        # 尝试提供更友好的错误信息
+        error_msg = str(e)
+        if "403" in error_msg:
+             error_msg = "API Key 无效或无权限 (403)"
+        raise HTTPException(status_code=502, detail=f"AI 服务错误: {error_msg}")
 
 @app.post("/api/generate")
 async def generate_xmind_endpoint(request: GenerateRequest):
@@ -123,7 +158,7 @@ async def generate_xmind_endpoint(request: GenerateRequest):
     # 如果没有，我们假设文本已经是缩进格式的。
     if request.api_key:
         logger.info("正在使用 AI 结构化文本...")
-        content = call_openai_to_structure(content, request.api_key, request.base_url, request.model)
+        content = call_gemini_to_structure(content, request.api_key, request.base_url, request.model)
         logger.info("AI 结构化完成。")
 
     # 2. 生成文件
@@ -132,7 +167,7 @@ async def generate_xmind_endpoint(request: GenerateRequest):
         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
         formatter = manager.get_formatter(request.format)
         filename = f"mindmap_{timestamp}{formatter.file_extension}"
-        filepath = os.path.join("static", filename)
+        filepath = os.path.abspath(os.path.join("static", filename))
 
         # 解析内容
         title, tree_nodes = parse_text(content=content)
