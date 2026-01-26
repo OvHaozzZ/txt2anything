@@ -3,9 +3,12 @@ OCR 引擎模块
 封装 RapidOCR 进行文字识别
 """
 
-from typing import List, Dict, Any, Union, Optional
+from typing import List, Dict, Any, Union, Optional, TYPE_CHECKING
 from pathlib import Path
 import numpy as np
+
+if TYPE_CHECKING:
+    from PIL import Image
 
 
 class OCREngine:
@@ -32,7 +35,7 @@ class OCREngine:
                     "RapidOCR 未安装。请运行: pip install rapidocr-onnxruntime"
                 )
 
-    def recognize(self, image: Union[str, Path, 'Image.Image', np.ndarray]) -> List[Dict[str, Any]]:
+    def recognize(self, image: Union[str, Path, "Image.Image", np.ndarray]) -> List[Dict[str, Any]]:
         """
         识别图片中的文字
 
@@ -73,7 +76,7 @@ class OCREngine:
 
         return formatted
 
-    def recognize_batch(self, images: List[Union[str, 'Image.Image', np.ndarray]]) -> List[List[Dict]]:
+    def recognize_batch(self, images: List[Union[str, "Image.Image", np.ndarray]]) -> List[List[Dict]]:
         """
         批量识别多张图片
 
