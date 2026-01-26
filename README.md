@@ -7,7 +7,8 @@
 
 ## 功能特性
 
-- **多格式输出**：支持 XMind、Markdown 等多种输出格式
+- **多格式输出**：支持 XMind、Markdown、PPT 等多种输出格式
+- **多模态输入**：支持文本、图片（OCR）、视频（OCR + 语音识别）
 - **文本转思维导图**：将缩进文本转换为专业的思维导图和结构化文档
 - **多种布局**：XMind 支持右侧、思维导图、树形图和组织结构图布局
 - **Web 界面**：基于 Vue.js 的用户友好型 Web 应用程序
@@ -54,19 +55,28 @@ python web_app.py
 
 ```bash
 # 基本用法（默认生成 XMind 格式）
-python generate_xmind.py input.txt
+python main.py input.txt
 
 # 生成 Markdown 格式
-python generate_xmind.py input.txt --format markdown
+python main.py input.txt --format markdown
 
 # 生成 XMind 并指定布局
-python generate_xmind.py input.txt --format xmind --layout map
+python main.py input.txt --format xmind --layout map
+
+# 从图片生成（OCR 识别）
+python main.py screenshot.png --format xmind
+
+# 从视频生成（OCR + 语音识别）
+python main.py lecture.mp4 --format markdown
+
+# 仅提取内容（不生成文件）
+python main.py video.mp4 --extract-only
 
 # 列出所有支持的格式
-python generate_xmind.py --list-formats
+python main.py --list-formats
 
 # 查看帮助
-python generate_xmind.py --help
+python main.py --help
 ```
 
 ## 支持的输出格式
@@ -75,6 +85,15 @@ python generate_xmind.py --help
 |------|--------|------|----------|
 | **XMind** | `.xmind` | 专业思维导图格式 | 需要可视化思维导图、演示、头脑风暴 |
 | **Markdown** | `.md` | 层级列表格式 | 文档编写、GitHub、笔记应用 |
+| **PPT** | `.pptx` | PowerPoint 演示文稿 | 演示、汇报 |
+
+## 支持的输入格式
+
+| 类型 | 格式 | 描述 |
+|------|------|------|
+| **文本** | `.txt` | 缩进格式的文本文件 |
+| **图片** | `.jpg`, `.jpeg`, `.png`, `.bmp`, `.webp`, `.tiff` | 通过 OCR 识别图片中的文字 |
+| **视频** | `.mp4`, `.avi`, `.mov`, `.mkv`, `.webm`, `.wmv` | OCR + 语音识别提取内容 |
 
 ### 如何添加新格式
 
@@ -200,14 +219,14 @@ pytest tests/ --cov=. --cov-report=html
 
 # 代码质量检查
 flake8 .
-pylint generate_xmind.py web_app.py
+pylint main.py web_app.py
 ```
 
 ### 项目结构
 
 ```
 txt2xmind/
-├── generate_xmind.py      # 命令行入口（支持多格式）
+├── main.py                # 命令行入口（支持多格式、多模态）
 ├── web_app.py             # FastAPI Web 应用
 ├── format_manager.py      # 格式管理器
 ├── core/                  # 核心模块
@@ -217,12 +236,24 @@ txt2xmind/
 │   ├── __init__.py
 │   ├── base.py            # 格式化器抽象基类
 │   ├── xmind.py           # XMind 格式化器
-│   └── markdown.py        # Markdown 格式化器
+│   ├── markdown.py        # Markdown 格式化器
+│   └── ppt.py             # PPT 格式化器
+├── extractors/            # 多模态内容提取器
+│   ├── __init__.py        # ExtractorManager
+│   ├── base.py            # 提取器抽象基类
+│   ├── image_extractor.py # 图片 OCR 提取器
+│   ├── video_extractor.py # 视频提取器
+│   └── engines/           # 底层引擎
+│       ├── ocr_engine.py      # RapidOCR 封装
+│       ├── speech_engine.py   # faster-whisper 封装
+│       └── video_processor.py # ffmpeg 视频处理
+├── ppt_tools/             # PPT 生成工具链
 ├── static/
 │   └── index.html         # Vue.js 前端界面
 ├── tests/                 # 测试套件
-│   ├── test_generate_xmind.py
-│   └── test_web_app.py
+│   ├── test_main.py
+│   ├── test_web_app.py
+│   └── test_extractors.py
 ├── requirements.txt       # 生产依赖
 ├── requirements-dev.txt   # 开发依赖
 ├── Dockerfile            # Docker 配置

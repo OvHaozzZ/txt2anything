@@ -79,7 +79,7 @@ jobs:
 
       - name: Run pylint
         run: |
-          pylint generate_xmind.py web_app.py --exit-zero --max-line-length=127
+          pylint main.py web_app.py --exit-zero --max-line-length=127
 
   build-and-push:
     name: Build and Push Docker Image

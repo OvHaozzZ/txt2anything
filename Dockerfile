@@ -10,13 +10,14 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
-# Install system dependencies
+# Install system dependencies (including ffmpeg for video processing)
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     gcc \
     pkg-config \
     libcairo2-dev \
     libgirepository1.0-dev \
+    ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for better caching
@@ -26,8 +27,13 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
-COPY generate_xmind.py .
+COPY main.py .
 COPY web_app.py .
+COPY format_manager.py .
+COPY core/ ./core/
+COPY formatters/ ./formatters/
+COPY extractors/ ./extractors/
+COPY ppt_tools/ ./ppt_tools/
 COPY static/ ./static/
 
 # Create directory for generated files

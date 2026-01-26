@@ -1,5 +1,5 @@
 """
-Tests for generate_xmind.py
+Tests for main.py - 核心解析和格式化功能测试
 """
 import os
 import json

@@ -23,7 +23,7 @@
         }
 
         .glass-dark {
-            background: rgba(15, 23, 42, 0.6);
+            background: rgba(15, 23, 42, 0.8);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -49,8 +49,27 @@
             }
         }
 
+        @keyframes gradient-xy {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
         .animate-float {
             animation: float 6s ease-in-out infinite;
+        }
+
+        .animate-gradient-xy {
+            background-size: 200% 200%;
+            animation: gradient-xy 15s ease infinite;
         }
 
         .btn-hover-effect {
@@ -68,8 +87,8 @@
 
         /* Custom scrollbar */
         ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
+            width: 8px;
+            height: 8px;
         }
 
         ::-webkit-scrollbar-track {
@@ -78,7 +97,7 @@
 
         ::-webkit-scrollbar-thumb {
             background: rgba(156, 163, 175, 0.5);
-            border-radius: 3px;
+            border-radius: 4px;
         }
 
         ::-webkit-scrollbar-thumb:hover {
@@ -108,16 +127,16 @@
 </head>
 
 <body
-    class="h-screen flex flex-col overflow-hidden bg-gradient-to-br from-indigo-900 via-violet-900 to-fuchsia-900 text-slate-800 selection:bg-fuchsia-400 selection:text-white">
+    class="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 animate-gradient-xy text-slate-800 selection:bg-indigo-300 selection:text-indigo-900">
 
     <!-- Background Orbs -->
     <div class="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
-        <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
-        <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-fuchsia-500/20 rounded-full blur-3xl animate-pulse"
+        <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-300/30 rounded-full blur-3xl animate-pulse"></div>
+        <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-fuchsia-300/30 rounded-full blur-3xl animate-pulse"
             style="animation-delay: 2s;"></div>
     </div>
 
-    <div id="app" class="relative z-10 flex-1 flex flex-col h-full max-w-[1600px] mx-auto w-full">
+    <div id="app" class="relative z-10 flex-1 flex flex-col min-h-screen max-w-[1600px] mx-auto w-full">
         <!-- Header -->
         <header class="px-8 py-5 flex items-center justify-between">
             <div class="flex items-center gap-4 animate-float">
@@ -126,7 +145,7 @@
                         class="absolute -inset-1 bg-gradient-to-r from-blue-600 to-fuchsia-600 rounded-xl blur opacity-25 group-hover:opacity-75 transition duration-1000">
                     </div>
                     <div
-                        class="relative w-12 h-12 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/20 shadow-xl overflow-hidden">
+                        class="relative w-12 h-12 bg-white/80 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/50 shadow-xl overflow-hidden">
                         <!-- Logo Image -->
                         <img src="/static/logo.png" alt="Logo"
                             class="w-full h-full object-cover opacity-90 group-hover:scale-110 transition duration-500">
@@ -134,16 +153,16 @@
                 </div>
                 <div>
                     <h1
-                        class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-300 tracking-tight">
+                        class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-600 tracking-tight">
                         txt2anything</h1>
-                    <p class="text-xs text-slate-400 font-medium tracking-wide uppercase">AI Structural Converter</p>
+                    <p class="text-xs text-slate-500 font-medium tracking-wide uppercase">AI Structural Converter</p>
                 </div>
             </div>
             <div class="flex items-center gap-4">
-                <a href="https://github.com/txt2xmind" target="_blank"
-                    class="text-sm text-slate-300 hover:text-white transition opacity-70 hover:opacity-100 font-medium">GitHub</a>
+                <a href="https://github.com/OvHaozzZ/txt2anything" target="_blank"
+                    class="text-sm text-slate-500 hover:text-indigo-600 transition font-medium">GitHub</a>
                 <button @click="showSettings = !showSettings"
-                    class="p-2.5 bg-white/10 hover:bg-white/20 rounded-full transition text-white border border-white/10 backdrop-blur-sm">
+                    class="p-2.5 bg-white/50 hover:bg-white/80 rounded-full transition text-slate-600 border border-slate-200/50 backdrop-blur-sm shadow-sm md:hidden">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path
@@ -156,7 +175,7 @@
         </header>
 
         <!-- Main Content -->
-        <main class="flex-1 flex overflow-hidden p-6 gap-6">
+        <main class="flex-1 flex flex-col md:flex-row p-6 gap-6">
 
             <!-- Left: Input Card -->
             <div
