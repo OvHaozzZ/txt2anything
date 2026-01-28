@@ -188,51 +188,104 @@
                         </label>
                         <span
                             class="text-[10px] font-bold tracking-wider text-slate-500 bg-white/60 px-2 py-1 rounded-md border border-slate-200/50">MARKDOWN
-                            / TEXT</span>
+                            / TEXT / FILE</span>
+                    </div>
+
+                    <!-- 文件上传区域 -->
+                    <div class="relative">
+                        <!-- 隐藏的文件输入 -->
+                        <input type="file" ref="fileInput" @change="handleFileSelect"
+                            accept="image/*,video/*" class="hidden">
+
+                        <!-- 已上传文件预览 -->
+                        <div v-if="uploadedFile"
+                            class="relative bg-slate-50/80 rounded-xl p-4 border-2 border-dashed border-blue-300">
+                            <div class="flex items-center gap-4">
+                                <!-- 图片预览 -->
+                                <div v-if="isImageFile(uploadedFile)" class="flex-shrink-0">
+                                    <img :src="filePreviewUrl"
+                                        class="w-20 h-20 object-cover rounded-lg shadow-md">
+                                </div>
+                                <!-- 视频预览 -->
+                                <div v-else-if="isVideoFile(uploadedFile)" class="flex-shrink-0">
+                                    <video :src="filePreviewUrl"
+                                        class="w-20 h-20 object-cover rounded-lg shadow-md">
+                                    </video>
+                                </div>
+                                <!-- 文件信息 -->
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium text-slate-700 truncate">{{ uploadedFile.name }}</p>
+                                    <p class="text-xs text-slate-500">{{ formatFileSize(uploadedFile.size) }}</p>
+                                    <p class="text-xs text-blue-500 mt-1">
+                                        <span v-if="isImageFile(uploadedFile)">图片文件 - 将进行 OCR 识别</span>
+                                        <span v-else-if="isVideoFile(uploadedFile)">视频文件 - 将提取画面和语音</span>
+                                    </p>
+                                </div>
+                                <!-- 删除按钮 -->
+                                <button @click="removeFile"
+                                    class="flex-shrink-0 p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 拖拽上传区域 -->
+                        <div v-else
+                            @click="triggerFileInput"
+                            @dragover.prevent="isDragging = true"
+                            @dragleave.prevent="isDragging = false"
+                            @drop.prevent="handleFileDrop"
+                            :class="[
+                                'cursor-pointer rounded-xl p-4 border-2 border-dashed transition-all duration-300',
+                                isDragging
+                                    ? 'border-blue-500 bg-blue-50/50'
+                                    : 'border-slate-200 hover:border-blue-300 hover:bg-slate-50/50'
+                            ]">
+                            <div class="flex items-center justify-center gap-3 text-slate-500">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                                <span class="text-sm">
+                                    <span class="font-medium text-blue-500">点击上传</span> 或拖拽图片/视频到此处
+                                </span>
+                            </div>
+                            <p class="text-xs text-slate-400 text-center mt-2">支持 JPG, PNG, MP4, MOV 等格式</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 text-xs text-slate-400">
+                        <span class="w-full h-px bg-slate-200"></span>
+                        <span class="flex-shrink-0">或输入文本</span>
+                        <span class="w-full h-px bg-slate-200"></span>
                     </div>
 
                     <textarea v-model="rawText"
                         class="flex-1 w-full bg-slate-50/50 hover:bg-white/80 focus:bg-white border-0 rounded-xl p-5 text-sm font-mono leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all duration-300 placeholder:text-slate-400"
                         placeholder="请输入一段文本，AI 将自动为您整理成结构化内容...&#10;&#10;例如：&#10;帮我整理一份关于 Python 学习路线的脑图，包含基础语法、数据结构、常用库和Web开发框架。"></textarea>
 
-                    <!-- Settings Panel (Collapsible) -->
-                    <div v-show="showSettings"
-                        class="bg-white/60 p-5 rounded-xl border border-slate-200/60 space-y-4 shadow-sm backdrop-blur-sm transition-all">
-                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <!-- Actions Bar -->
+                    <div class="flex items-center gap-3 mt-2">
+                        <!-- 配置按钮 -->
+                        <button @click="showSettings = !showSettings"
+                            :class="[
+                                'flex-shrink-0 p-3 rounded-xl transition-all duration-300 flex items-center justify-center',
+                                showSettings
+                                    ? 'bg-blue-100 text-blue-600'
+                                    : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                            ]"
+                            title="API 配置">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
                                 </path>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                             </svg>
-                            API 配置
-                        </h3>
-                        <div class="grid gap-3">
-                            <div>
-                                <input type="password" v-model="apiKey" placeholder="API Key (sk-...)"
-                                    class="w-full text-xs p-3 rounded-lg bg-white border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-300">
-                                <p class="text-[10px] text-slate-400 mt-1.5 ml-1">留空则不使用 AI，仅按缩进生成</p>
-                            </div>
-                            <div>
-                                <input type="text" v-model="baseUrl"
-                                    placeholder="Base URL (Optional, e.g. https://api.openai.com/v1)"
-                                    class="w-full text-xs p-3 rounded-lg bg-white border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-300">
-                            </div>
-                            <div>
-                                <select v-model="model"
-                                    class="w-full text-xs p-3 rounded-lg bg-white border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all text-slate-600">
-                                    <option value="gemini-3-flash-preview">Gemini 3 Flash Preview (Default)</option>
-                                    <option value="gemini-2.0-flash-exp">Gemini 2.0 Flash (Experimental)</option>
-                                    <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
-                                    <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
+                        </button>
 
-                    <!-- Actions Bar -->
-                    <div class="flex items-center gap-3 mt-2">
                         <div class="relative flex-shrink-0">
                             <select v-model="outputFormat"
                                 class="appearance-none w-32 pl-4 pr-8 py-3 text-sm font-medium border-0 rounded-xl bg-slate-100 text-slate-700 focus:ring-2 focus:ring-blue-500/50 outline-none cursor-pointer hover:bg-slate-200 transition">
@@ -266,7 +319,7 @@
                             </div>
                         </div>
 
-                        <button @click="generate" :disabled="isLoading || !rawText.trim()"
+                        <button @click="generate" :disabled="isLoading || (!rawText.trim() && !uploadedFile)"
                             class="btn-hover-effect flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-xl shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2 group">
                             <span v-if="isLoading"
                                 class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
@@ -281,6 +334,35 @@
                                 立即生成
                             </span>
                         </button>
+                    </div>
+
+                    <!-- Settings Panel (Collapsible) -->
+                    <div v-show="showSettings"
+                        class="bg-white/60 p-4 rounded-xl border border-slate-200/60 shadow-sm backdrop-blur-sm transition-all">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <div>
+                                <label class="text-[10px] font-medium text-slate-500 mb-1 block">API Key</label>
+                                <input type="password" v-model="apiKey" placeholder="sk-..."
+                                    class="w-full text-xs p-2.5 rounded-lg bg-white border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-300">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-medium text-slate-500 mb-1 block">Base URL (可选)</label>
+                                <input type="text" v-model="baseUrl"
+                                    placeholder="https://api.openai.com/v1"
+                                    class="w-full text-xs p-2.5 rounded-lg bg-white border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-300">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-medium text-slate-500 mb-1 block">模型</label>
+                                <select v-model="model"
+                                    class="w-full text-xs p-2.5 rounded-lg bg-white border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all text-slate-600">
+                                    <option value="gemini-3-flash-preview">Gemini 3 Flash Preview</option>
+                                    <option value="gemini-2.0-flash-exp">Gemini 2.0 Flash</option>
+                                    <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                                    <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+                                </select>
+                            </div>
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-2">留空 API Key 则不使用 AI，仅按缩进生成</p>
                     </div>
                 </div>
             </div>
@@ -397,11 +479,20 @@
                 const layout = ref('right')
                 const outputFormat = ref('xmind')
                 const formats = ref([])
-                const showSettings = ref(true)
+                const showSettings = ref(false)
                 const isLoading = ref(false)
                 const downloadUrl = ref('')
                 const statusMessage = ref('')
                 const model = ref('gemini-3-flash-preview')
+
+                // 多模态文件上传相关
+                const uploadedFile = ref(null)
+                const filePreviewUrl = ref('')
+                const isDragging = ref(false)
+                const supportedTypes = {
+                    image: ['image/jpeg', 'image/png', 'image/bmp', 'image/webp', 'image/tiff'],
+                    video: ['video/mp4', 'video/avi', 'video/quicktime', 'video/x-matroska', 'video/webm', 'video/x-ms-wmv']
+                }
 
                 // Load formats
                 const loadFormats = async () => {
@@ -431,36 +522,70 @@
                 }
 
                 const generate = async () => {
-                    if (!rawText.value) return
+                    // 检查是否有输入（文本或文件）
+                    if (!rawText.value.trim() && !uploadedFile.value) return
 
                     isLoading.value = true
                     downloadUrl.value = ''
                     resultText.value = ''
 
-                    if (apiKey.value) {
-                        statusMessage.value = "AI 正在提取核心逻辑..."
-                    } else {
-                        statusMessage.value = "正在构建数据结构..."
-                    }
-
                     localStorage.setItem('ai_xmind_key', apiKey.value)
                     localStorage.setItem('ai_xmind_url', baseUrl.value)
 
                     try {
-                        const response = await fetch('/api/generate', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                text: rawText.value,
-                                api_key: apiKey.value,
-                                base_url: baseUrl.value,
-                                layout: layout.value,
-                                format: outputFormat.value,
-                                model: model.value
+                        let response
+
+                        if (uploadedFile.value) {
+                            // 文件上传模式
+                            if (uploadedFile.value.type.startsWith('video')) {
+                                statusMessage.value = "正在提取视频内容..."
+                            } else {
+                                statusMessage.value = "正在识别图片内容..."
+                            }
+
+                            const formData = new FormData()
+                            formData.append('file', uploadedFile.value)
+                            formData.append('format', outputFormat.value)
+                            formData.append('layout', layout.value)
+                            if (apiKey.value) {
+                                formData.append('api_key', apiKey.value)
+                            }
+                            if (baseUrl.value) {
+                                formData.append('base_url', baseUrl.value)
+                            }
+                            formData.append('model', model.value)
+                            // 如果有额外的文本说明，也一并发送
+                            if (rawText.value.trim()) {
+                                formData.append('additional_prompt', rawText.value)
+                            }
+
+                            response = await fetch('/api/generate-from-file', {
+                                method: 'POST',
+                                body: formData
                             })
-                        })
+                        } else {
+                            // 纯文本模式
+                            if (apiKey.value) {
+                                statusMessage.value = "AI 正在提取核心逻辑..."
+                            } else {
+                                statusMessage.value = "正在构建数据结构..."
+                            }
+
+                            response = await fetch('/api/generate', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    text: rawText.value,
+                                    api_key: apiKey.value,
+                                    base_url: baseUrl.value,
+                                    layout: layout.value,
+                                    format: outputFormat.value,
+                                    model: model.value
+                                })
+                            })
+                        }
 
                         if (!response.ok) {
                             const err = await response.json()
@@ -481,6 +606,71 @@
                 const reset = () => {
                     downloadUrl.value = ''
                     resultText.value = ''
+                    uploadedFile.value = null
+                    filePreviewUrl.value = ''
+                }
+
+                // 文件上传相关函数
+                const fileInput = ref(null)
+
+                const triggerFileInput = () => {
+                    fileInput.value?.click()
+                }
+
+                const isImageFile = (file) => {
+                    return file && supportedTypes.image.some(type => file.type.startsWith(type.split('/')[0]))
+                }
+
+                const isVideoFile = (file) => {
+                    return file && supportedTypes.video.some(type => file.type.startsWith(type.split('/')[0]))
+                }
+
+                const formatFileSize = (bytes) => {
+                    if (bytes < 1024) return bytes + ' B'
+                    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
+                    return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
+                }
+
+                const handleFileSelect = (event) => {
+                    const file = event.target.files[0]
+                    if (file) {
+                        processFile(file)
+                    }
+                }
+
+                const handleFileDrop = (event) => {
+                    isDragging.value = false
+                    const file = event.dataTransfer.files[0]
+                    if (file) {
+                        processFile(file)
+                    }
+                }
+
+                const processFile = (file) => {
+                    const allSupported = [...supportedTypes.image, ...supportedTypes.video]
+                    const isSupported = allSupported.some(type => {
+                        const [mainType] = type.split('/')
+                        return file.type.startsWith(mainType)
+                    })
+
+                    if (!isSupported) {
+                        alert('不支持的文件格式，请上传图片或视频文件')
+                        return
+                    }
+
+                    uploadedFile.value = file
+                    filePreviewUrl.value = URL.createObjectURL(file)
+                }
+
+                const removeFile = () => {
+                    if (filePreviewUrl.value) {
+                        URL.revokeObjectURL(filePreviewUrl.value)
+                    }
+                    uploadedFile.value = null
+                    filePreviewUrl.value = ''
+                    if (fileInput.value) {
+                        fileInput.value.value = ''
+                    }
                 }
 
                 return {
@@ -499,7 +689,19 @@
                     generate,
                     reset,
                     getFormatDescription,
-                    getFormatExtension
+                    getFormatExtension,
+                    // 文件上传相关
+                    uploadedFile,
+                    filePreviewUrl,
+                    isDragging,
+                    fileInput,
+                    triggerFileInput,
+                    handleFileSelect,
+                    handleFileDrop,
+                    removeFile,
+                    isImageFile,
+                    isVideoFile,
+                    formatFileSize
                 }
             }
         }).mount('#app')
