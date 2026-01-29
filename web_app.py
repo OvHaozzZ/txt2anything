@@ -49,39 +49,22 @@ class GenerateRequest(BaseModel):
 def call_gemini_to_structure(text: str, api_key: str, base_url: Optional[str], model: str) -> str:
     """
     调用 Google Gemini API 将原始文本结构化为缩进列表。
+    使用新的 google-genai 包。
     """
     try:
-        import google.generativeai as genai
+        from google import genai
+        from google.genai import types
     except ImportError:
-        raise HTTPException(status_code=500, detail="未安装 Google Generative AI 库。请运行 `pip install google-generativeai`。")
+        raise HTTPException(status_code=500, detail="未安装 Google GenAI 库。请运行 `pip install google-genai`。")
 
     if not api_key:
-         raise HTTPException(status_code=400, detail="需要 API Key 才能进行 AI 结构化处理。")
+        raise HTTPException(status_code=400, detail="需要 API Key 才能进行 AI 结构化处理。")
 
-    # 配置 Gemini
-    genai.configure(api_key=api_key)
-
-    # 如果有 base_url，目前 google-generativeai 库原生支持较弱，通常直接连 Google
-    # 但如果用户确实需要自定义端点（例如反代），可能需要更底层的配置或改回 requests 调用
-    # 这里我们暂时假设标准用法，忽略 base_url 或仅做日志提示
-    if base_url:
-        logger.warning("Gemini API 目前主要支持官方端点，Base URL 设置可能无效或需特殊处理。")
-
-    # 使用 Gemini Pro 模型
-    # 如果用户传的是 gpt-3.5，我们需要强制转为 gemini 模型
-    # 否则直接使用用户传递的模型
+    # 选择模型
     if not model or "gpt" in model:
-        target_model = "gemini-3-flash-preview"
+        target_model = "gemini-2.0-flash"
     else:
         target_model = model
-    
-    generation_config = {
-        "temperature": 0.7,
-        "top_p": 0.95,
-        "top_k": 64,
-        "max_output_tokens": 8192,
-        "response_mime_type": "text/plain",
-    }
 
     system_prompt = """
 You are a helpful assistant that summarizes and structures text into a hierarchical indented list.
@@ -106,39 +89,35 @@ Python Overview
       Numpy
 """
 
-    # 安全设置：尽可能放宽，防止误拦截
-    # 注意：使用的 SDK 版本可能需要使用特定的枚举或字符串
-    # 这里直接使用字符串键值对，兼容性更好
-    safety_settings = [
-        {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
-        {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
-        {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
-        {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
-    ]
-
     try:
-        model_instance = genai.GenerativeModel(
-            model_name=target_model,
-            system_instruction=system_prompt
+        # 创建客户端
+        client = genai.Client(api_key=api_key)
+
+        # 生成配置
+        config = types.GenerateContentConfig(
+            temperature=0.7,
+            top_p=0.95,
+            top_k=64,
+            max_output_tokens=8192,
+            system_instruction=system_prompt,
         )
 
-        # 使用 generate_content 而不是 chat，适用于单次生成
-        response = model_instance.generate_content(
-            text,
-            generation_config=generation_config,
-            safety_settings=safety_settings
+        # 调用 API
+        response = client.models.generate_content(
+            model=target_model,
+            contents=text,
+            config=config
         )
-        
-        # 简单检查 response.text 是否可用
-        # 如果被拦截，访问 .text 会抛出 ValueError
+
         return response.text
-        
+
     except Exception as e:
         logger.error(f"Gemini API Error: {e}")
-        # 尝试提供更友好的错误信息
         error_msg = str(e)
         if "403" in error_msg:
-             error_msg = "API Key 无效或无权限 (403)"
+            error_msg = "API Key 无效或无权限 (403)"
+        elif "404" in error_msg:
+            error_msg = f"模型不存在: {target_model}"
         raise HTTPException(status_code=502, detail=f"AI 服务错误: {error_msg}")
 
 @app.post("/api/generate")
@@ -184,6 +163,12 @@ async def generate_xmind_endpoint(request: GenerateRequest):
         options = {}
         if request.format == "xmind":
             options["layout"] = request.layout
+        elif request.format == "ppt":
+            # PPT 格式支持 AI 生成 SVG
+            if request.api_key:
+                options["api_key"] = request.api_key
+                options["model"] = request.model
+                options["style"] = "professional"
 
         manager.export(request.format, title, tree_nodes, filepath, **options)
 
@@ -381,6 +366,12 @@ async def generate_from_file(
         export_options = {}
         if format == "xmind":
             export_options["layout"] = layout
+        elif format == "ppt":
+            # PPT 格式支持 AI 生成 SVG
+            if api_key:
+                export_options["api_key"] = api_key
+                export_options["model"] = model
+                export_options["style"] = "professional"
 
         format_manager.export(format, title, tree_nodes, filepath, **export_options)
 
