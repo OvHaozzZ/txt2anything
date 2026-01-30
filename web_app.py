@@ -393,7 +393,7 @@ async def generate_from_file(
 
 @app.get("/")
 async def read_index():
-    return FileResponse(os.path.join(STATIC_DIR, 'index.html'))
+    return {"message": "API is running. Frontend has been migrated to Next.js."}
 
 if __name__ == "__main__":
     uvicorn.run("web_app:app", host="0.0.0.0", port=8000, reload=True)
