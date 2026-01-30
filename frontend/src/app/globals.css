@@ -79,3 +79,112 @@
     @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-black/10 focus-visible:ring-offset-2;
   }
 }
+
+/* Gradient Glow Background Animation */
+@keyframes glow-move-1 {
+  0%, 100% {
+    transform: translate(0%, 0%) scale(1);
+    opacity: 0.4;
+  }
+  25% {
+    transform: translate(10%, 15%) scale(1.1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translate(-5%, 10%) scale(0.95);
+    opacity: 0.5;
+  }
+  75% {
+    transform: translate(5%, -10%) scale(1.05);
+    opacity: 0.45;
+  }
+}
+
+@keyframes glow-move-2 {
+  0%, 100% {
+    transform: translate(0%, 0%) scale(1);
+    opacity: 0.35;
+  }
+  25% {
+    transform: translate(-15%, 5%) scale(1.15);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translate(10%, -10%) scale(0.9);
+    opacity: 0.4;
+  }
+  75% {
+    transform: translate(-10%, 15%) scale(1.1);
+    opacity: 0.55;
+  }
+}
+
+@keyframes glow-move-3 {
+  0%, 100% {
+    transform: translate(0%, 0%) scale(1);
+    opacity: 0.3;
+  }
+  33% {
+    transform: translate(20%, -15%) scale(1.2);
+    opacity: 0.45;
+  }
+  66% {
+    transform: translate(-15%, 20%) scale(0.85);
+    opacity: 0.35;
+  }
+}
+
+@layer components {
+  .glow-background {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .glow-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(100px);
+    will-change: transform, opacity;
+  }
+
+  .glow-orb-1 {
+    width: 600px;
+    height: 600px;
+    background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 50%, #94a3b8 100%);
+    top: -10%;
+    right: -5%;
+    animation: glow-move-1 20s ease-in-out infinite;
+  }
+
+  .glow-orb-2 {
+    width: 500px;
+    height: 500px;
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 50%, #cbd5e1 100%);
+    bottom: -15%;
+    left: -10%;
+    animation: glow-move-2 25s ease-in-out infinite;
+  }
+
+  .glow-orb-3 {
+    width: 400px;
+    height: 400px;
+    background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 50%, #f9a8d4 100%);
+    top: 40%;
+    left: 30%;
+    opacity: 0.3;
+    animation: glow-move-3 18s ease-in-out infinite;
+  }
+
+  .glow-orb-4 {
+    width: 350px;
+    height: 350px;
+    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 50%, #a7f3d0 100%);
+    top: 20%;
+    right: 25%;
+    opacity: 0.25;
+    animation: glow-move-2 22s ease-in-out infinite reverse;
+  }
+}

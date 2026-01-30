@@ -109,7 +109,15 @@ export default function HomePage() {
   const resultState = isLoading ? 'loading' : downloadUrl ? 'success' : 'empty';
 
   return (
-    <div className="min-h-screen flex flex-col bg-white text-black">
+    <div className="min-h-screen flex flex-col bg-white/80 text-black">
+      {/* 渐变光晕背景 */}
+      <div className="glow-background">
+        <div className="glow-orb glow-orb-1" />
+        <div className="glow-orb glow-orb-2" />
+        <div className="glow-orb glow-orb-3" />
+        <div className="glow-orb glow-orb-4" />
+      </div>
+
       {/* 侧边栏 */}
       <Sidebar
         isOpen={sidebarOpen}
@@ -141,7 +149,7 @@ export default function HomePage() {
 
       {/* 主内容区域 */}
       <div
-        className="flex-1 flex flex-col min-h-screen transition-all duration-300"
+        className="flex-1 flex flex-col min-h-screen transition-all duration-300 relative z-10"
         style={{ marginLeft: sidebarOpen ? '256px' : '0' }}
       >
         <Header
@@ -153,13 +161,13 @@ export default function HomePage() {
           {/* 输入区域 */}
           <div className="flex-1 flex flex-col gap-5 min-w-0">
             <div className="flex items-center justify-between">
-              <h2 className="text-[13px] font-semibold text-black/70">输入内容</h2>
-              <span className="text-[12px] text-black/40">支持文本或文件</span>
+              <h2 className="text-base font-bold text-black tracking-tight">输入内容</h2>
+              <span className="text-[11px] font-medium text-black/30 uppercase tracking-wider">支持文本或文件</span>
             </div>
 
             <FileUpload file={uploadedFile} onFileChange={setUploadedFile} />
 
-            <div className="flex items-center gap-3 text-[12px] text-black/30">
+            <div className="flex items-center gap-3 text-[11px] font-medium text-black/25 uppercase tracking-wider">
               <span className="flex-1 h-px bg-black/[0.06]" />
               <span>或输入文本</span>
               <span className="flex-1 h-px bg-black/[0.06]" />
@@ -178,7 +186,7 @@ export default function HomePage() {
               onClick={handleGenerate}
               disabled={!canGenerate || isLoading}
               isLoading={isLoading}
-              className="w-full"
+              className="w-full font-bold text-[15px]"
             >
               <Sparkles className="w-4 h-4" />
               立即生成

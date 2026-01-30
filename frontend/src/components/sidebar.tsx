@@ -1,7 +1,7 @@
 'use client';
 
 import { type ReactNode } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface SidebarProps {
@@ -32,8 +32,8 @@ export function Sidebar({ isOpen, onToggle, children, title = '设置', classNam
           )}
         >
           {/* 标题栏 */}
-          <div className="flex items-center justify-between h-14 px-5 border-b border-black/[0.06]">
-            <h2 className="text-sm font-semibold text-black">{title}</h2>
+          <div className="flex items-center justify-between h-16 px-5 border-b border-black/[0.06]">
+            <h2 className="text-base font-bold text-black tracking-tight">{title}</h2>
             <button
               onClick={onToggle}
               className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-black/[0.04] text-black/40 hover:text-black/70 transition-colors"
@@ -58,22 +58,6 @@ export function Sidebar({ isOpen, onToggle, children, title = '设置', classNam
         )}
       />
 
-      {/* 展开按钮 - 侧边栏关闭时显示 */}
-      <button
-        onClick={onToggle}
-        className={cn(
-          'fixed left-4 top-4 z-30',
-          'w-9 h-9 bg-white rounded-full shadow-sm border border-black/[0.08]',
-          'flex items-center justify-center',
-          'text-black/50 hover:text-black hover:shadow-md',
-          'transition-all duration-200',
-          isOpen ? 'opacity-0 pointer-events-none scale-90' : 'opacity-100 scale-100'
-        )}
-        aria-label="展开侧边栏"
-      >
-        <ChevronRight className="w-4 h-4" />
-      </button>
-
       {/* 遮罩层 - 移动端 */}
       {isOpen && (
         <div
@@ -94,7 +78,7 @@ interface SidebarSectionProps {
 export function SidebarSection({ title, children, className }: SidebarSectionProps) {
   return (
     <div className={cn('mb-8', className)}>
-      <h3 className="text-[11px] font-medium text-black/40 uppercase tracking-wider mb-4">
+      <h3 className="text-[10px] font-bold text-black/30 uppercase tracking-widest mb-4">
         {title}
       </h3>
       <div className="space-y-4">

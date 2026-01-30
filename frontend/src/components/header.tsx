@@ -11,8 +11,8 @@ interface HeaderProps {
 
 export function Header({ onSidebarToggle, showMenuButton = false }: HeaderProps) {
   return (
-    <header className="h-14 px-6 flex items-center justify-between border-b border-black/[0.06] bg-white">
-      <div className="flex items-center gap-3">
+    <header className="h-16 px-6 flex items-center justify-between border-b border-black/[0.06] bg-white/60 backdrop-blur-sm">
+      <div className="flex items-center gap-4">
         {showMenuButton && (
           <Button
             variant="ghost"
@@ -26,28 +26,33 @@ export function Header({ onSidebarToggle, showMenuButton = false }: HeaderProps)
         )}
 
         {/* Logo */}
-        <div className="relative w-8 h-8 rounded-lg overflow-hidden bg-black/[0.04]">
+        <div className="relative w-9 h-9 rounded-xl overflow-hidden bg-black/[0.04] shadow-sm">
           <Image
             src="/static/logo.png"
             alt="Logo"
-            width={32}
-            height={32}
+            width={36}
+            height={36}
             className="w-full h-full object-cover"
           />
         </div>
 
         {/* Title */}
-        <h1 className="text-[15px] font-semibold text-black">
-          txt2anything
-        </h1>
+        <div>
+          <h1 className="text-lg font-bold tracking-tight text-black font-display">
+            txt2anything
+          </h1>
+          <p className="text-[10px] text-black/40 font-medium tracking-wide uppercase -mt-0.5">
+            AI Structural Converter
+          </p>
+        </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-4">
         <a
           href="https://github.com/OvHaozzZ/txt2anything"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[13px] text-black/50 hover:text-black transition-colors"
+          className="text-[13px] font-medium text-black/40 hover:text-black transition-colors"
         >
           GitHub
         </a>

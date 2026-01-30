@@ -52,7 +52,7 @@ const Select = ({ className, label, options, error, value, onChange }: SelectPro
   return (
     <div className="space-y-2" ref={containerRef}>
       {label && (
-        <label className="text-[13px] font-medium text-black/70 block">
+        <label className="text-xs font-bold text-black/50 uppercase tracking-wider block">
           {label}
         </label>
       )}
