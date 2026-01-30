@@ -313,9 +313,12 @@ class PPTFormatter(BaseFormatter):
         try:
             # 导入 finalize_svg 模块
             sys.path.insert(0, str(self.tools_dir))
+
+            # 强制重新加载模块（避免缓存问题）
+            import importlib
             import finalize_svg
 
-            # 使用默认选项（全部处理）
+            # 使用默认选项（全部启用）
             options = {
                 'embed_icons': True,
                 'crop_images': True,
@@ -329,7 +332,9 @@ class PPTFormatter(BaseFormatter):
             success = finalize_svg.finalize_project(project_dir, options, dry_run=False, quiet=True)
             return success
         except Exception as e:
+            import traceback
             print(f"警告: SVG 后处理失败: {e}")
+            print(f"错误: {traceback.format_exc()}")
             return False
         finally:
             if str(self.tools_dir) in sys.path:
